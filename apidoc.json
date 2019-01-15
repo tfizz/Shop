@@ -1,0 +1,11 @@
+{
+  "name": "API Documentation",
+  "version": "0.0.1",
+  "description": "Demo Shop Documentation",
+  "title": "Demo Shop Documentation",
+  "url" : "{{ base_url }}/api",
+  "template": {
+  	"withCompare": false,
+  	"withGenerator": false
+  }
+}
