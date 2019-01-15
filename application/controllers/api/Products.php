@@ -35,6 +35,31 @@ class Products extends REST_Controller {
         $this->load->model("product");
     }
 
+    /**
+     * @api { get } /products/ Products
+     *
+     * @apiName Products List
+     * @apiDescription Get list of products. Filter products by availability. Pass query parameter quantity and the amount of items required
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {Array} data  List of products.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "data": [
+     *          {
+     *              "id": "1",
+     *              "title": "Product 1",
+     *              "price": "100.00",
+     *              "inventory_count": "10"
+     *          }
+     *       ]
+     *     }
+     *
+     * @apiGroup Products
+     */
     public function index_get(){
         $queryParams = $this->get();
         $products = $this->product->list($queryParams);
@@ -43,6 +68,30 @@ class Products extends REST_Controller {
         $this->response($response,REST_Controller::HTTP_OK);
     }
 
+    /**
+     * @api { get } /products/:id/details Product Details
+     *
+     * @apiName Product Details
+     * @apiDescription Get details of product specified by id
+     * @apiParam {Number} id  Product ID.
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {Object} data  Product details.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "data": {
+     *              "id": "1",
+     *              "title": "Product 1",
+     *              "price": "100.00",
+     *              "inventory_count": "10"
+     *        }
+     *     }
+     *
+     * @apiGroup Products
+     */
     public function details_get($id){
         $product = $this->product->details($id);
         $response["status"] = TRUE;

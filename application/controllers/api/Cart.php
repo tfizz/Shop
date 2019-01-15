@@ -39,6 +39,31 @@ class Cart extends REST_Controller {
         $this->load->model("product");
     }
 
+    /**
+     * @api { get } /cart Cart 
+     *
+     * @apiName Cart List
+     * @apiDescription List items in cart
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {Array} data  List of items.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "data": [
+     *          {
+     *              "id": "1",
+     *              "price": "100.00",
+     *              "quantity": "10",
+     *              "total_price": "1000.00"
+     *          }
+     *       ]
+     *     }
+     *
+     * @apiGroup Cart
+     */
     public function index_get(){
         $results = $this->product->listCart($this->sessionId);
         if(empty($results)){
@@ -61,6 +86,44 @@ class Cart extends REST_Controller {
 
     }
 
+    /**
+     * @api { post } /cart/add Add to Cart 
+     *
+     * @apiName Add 
+     * @apiDescription Add items to cart
+     * @apiHeaderExample {json} Header:
+     * {
+     *     "Content-Type": "application/json"
+     * }
+     *
+     * @apiParam {Number} id Product ID. 
+     * @apiParam {Number} quantity Quantity of items.
+     *
+     * @apiParamExample {json} Request-Example:
+     *  {
+     *      "id" : 1,
+     *      "quantity": 5
+     *  }
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {String} message User friendly message.
+     * @apiSuccess {Object} data  cart object.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "data": {
+     *              "id": "1",
+     *              "session_id": "1234567890",
+     *              "items": "[{\"id\":3,\"quantity\":1,\"price\":\"100.00\",\"total_price\":100}]", // cart items stringyfied
+     *              "created_at": "2019-01-15 04:05:07",
+     *              "updated_at": null
+     *        }
+     *     }
+     *
+     * @apiGroup Cart
+     */
     public function add_post(){
         $_POST = json_decode(file_get_contents("php://input"), true);
         $this->load->library("form_validation");
@@ -169,7 +232,47 @@ class Cart extends REST_Controller {
             
     }
 
-    public function remove_post(){
+    /**
+     * @api { post } /cart/:session_id/remove Remove from Cart 
+     *
+     * @apiName Remove 
+     * @apiDescription Remove items from cart
+     * @apiParam {String} session_id  Session ID returned when cart created
+     * @apiHeaderExample {json} Header:
+     * {
+     *     "Content-Type": "application/json"
+     * }
+     *
+     * @apiParam {Number} id Product ID. 
+     * @apiParam {Number} quantity Quantity of items.
+     *
+     * @apiParamExample {json} Request-Example:
+     *  {
+     *      "id" : 1,
+     *      "quantity": 5
+     *  }
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {String} message User friendly message.
+     * @apiSuccess {Object} data  cart object.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "message": "message",
+     *       "data": {
+     *              "id": "1",
+     *              "session_id": "1234567890",
+     *              "items": "[{\"id\":3,\"quantity\":1,\"price\":\"100.00\",\"total_price\":100}]", // cart items stringyfied
+     *              "created_at": "2019-01-15 04:05:07",
+     *              "updated_at": null
+     *        }
+     *     }
+     *
+     * @apiGroup Cart
+     */
+    public function remove_post($sessionId){
         $_POST = json_decode(file_get_contents("php://input"), true);
         $this->load->library("form_validation");
         $this->form_validation->set_rules('id','id','required|integer');
@@ -182,7 +285,7 @@ class Cart extends REST_Controller {
             $this->response($response,REST_Controller::HTTP_BAD_REQUEST);
         }
         else{
-            $cart = $this->product->listCart($this->sessionId);
+            $cart = $this->product->listCart($sessionId);
 
             if(empty($cart)){
                 $response["status"] = FALSE;
@@ -211,17 +314,17 @@ class Cart extends REST_Controller {
                 }
 
                 if(empty($items)){
-                    $this->product->emptyCart($this->sessionId);
+                    $this->product->emptyCart($sessionId);
                     $response["status"] = TRUE;
                     $response["message"] = "Cart empty";
                     $this->response($response,REST_Controller::HTTP_OK);
                 }
                 else{
                     // update items in cart.
-                    if($this->product->updateCart($this->sessionId,array("updated_at"=>date("Y-m-d H:i:s"),"items"=>json_encode($items)))){
+                    if($this->product->updateCart($sessionId,array("updated_at"=>date("Y-m-d H:i:s"),"items"=>json_encode($items)))){
                         $response["status"] = TRUE;
                         $response["message"] = "Item successfully removed from cart";
-                        $response["data"] = $this->product->listCart($this->sessionId);
+                        $response["data"] = $this->product->listCart($sessionId);
                         $this->response($response,REST_Controller::HTTP_OK);
                     }
                     else{
@@ -235,8 +338,27 @@ class Cart extends REST_Controller {
         }
     }
 
-    public function empty_delete(){
-        if($this->product->emptyCart($this->sessionId)){
+    /**
+     * @api { get } /cart/:session_id/empty Empty Cart 
+     *
+     * @apiName Empty 
+     * @apiDescription Empty cart
+     * @apiParam {String} session_id  Session ID returned when cart created
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {String} message User friendly message.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "message": "message"
+     *     }
+     *
+     * @apiGroup Cart
+     */
+    public function empty_delete($sessionId){
+        if($this->product->emptyCart($sessionId)){
             $response["status"] = TRUE;
             $response["message"] = "Cart empty";
             $this->response($response,REST_Controller::HTTP_OK);
@@ -248,6 +370,27 @@ class Cart extends REST_Controller {
         }
     }
 
+     /**
+     * @api { get } /cart/:session_id/checkout Checkout 
+     *
+     * @apiName Checkout 
+     * @apiDescription Checkout
+     * @apiParam {String} session_id  Session ID returned when cart created
+     *
+     * @apiSuccess {Boolean} status Status of request.
+     * @apiSuccess {String} message User friendly message.
+     * @apiSuccess {String} reference Order reference.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true,
+     *       "message": "message",
+     *       "reference": "1234567890"
+     *     }
+     *
+     * @apiGroup Cart
+     */
     public function checkout_get($sessionId){
         // check if cart exists for sessionId
         $cart = $this->product->listCart($sessionId);
