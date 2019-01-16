@@ -7,3 +7,4 @@ How to Install:
 3. Run mysql database script in sql folder
 4. Open file in application > config > database.php
    modify username,password to your mysql credentials
+demo url: http://shopify.appcore.com.ng
